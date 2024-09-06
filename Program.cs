@@ -14,6 +14,7 @@ namespace AttendanceAPI3
             builder.Services.AddDbContext<AttendanceContext>(options =>
                options.UseSqlServer(builder.Configuration.GetConnectionString("con")));
             builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddSession(
                 options =>
                 {

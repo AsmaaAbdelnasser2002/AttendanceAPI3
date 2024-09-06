@@ -7,25 +7,26 @@ using System.Threading.Tasks;
 
 namespace AttendanceAPI3.Models.DTOs
 {
-    public class PackageDataDto
+    public class SequanceDataDto
     {
-        [Required]
-        [StringLength(100)]
-        public string PackageName { get; set; }
+       
+        public string SequanceName { get; set; }
 
-        [StringLength(250)]
-        public string PackageDescription { get; set; }
+        
+        public string SequanceDescription { get; set; }
 
-        [Required]
+       
         public DateTime StartTime { get; set; }
 
-        [Required]
+        
         public DateTime EndTime { get; set; }
 
         public string creator { get; set; }
 
+
         public string ExcelSheetUrl { get; set; }
         public string FacesFolderUrl { get; set; }
         public string VoicesFolderUrl { get; set; }
+
     }
 }

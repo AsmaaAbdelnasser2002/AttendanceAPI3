@@ -20,10 +20,21 @@ namespace AttendanceAPI3.Controllers
             _context = context;
         }
 
-        [HttpPost("upload/{id}")]
-        public async Task<IActionResult> UploadPackage([FromForm] PackageDto packageDto,[FromRoute]int id)
-        { 
-
+        [HttpPost("create/{id}")]
+        public async Task<IActionResult> createPackage([FromForm] PackageDto packageDto, [FromRoute] int id)
+        {
+            //Response.Headers.Add("Cache-Control", "no-cache,no-store,must-revalidate");
+            //Response.Headers.Add("Pragma", "no-cache");
+            //var name = HttpContext.Session.GetString("Email");
+            //var user = await _context.Users.FirstOrDefaultAsync(m => m.Email == HttpContext.Session.GetString("Email"));
+            //if (string.IsNullOrEmpty(name))
+            //{
+            //    return Unauthorized(new { message = "You are not authenticated. Please log in." });
+            //}
+            //if (user.UserRole != "Instructor")
+            //{
+            //    return Unauthorized(new { message = "You are not authenticated. Please log in with Instructor role." });
+            //}
             using var stream1 = new MemoryStream();
             await packageDto.FacesFolder.CopyToAsync(stream1);
 
@@ -45,12 +56,16 @@ namespace AttendanceAPI3.Controllers
                 EndTime = packageDto.EndTime,
                 Sheet = stream3.ToArray() // Store the sheet data as a byte array in the database
             };
+            //package.User_Id=user.UserId;
             package.User_Id = id;
             _context.Packages.Add(package);
             await _context.SaveChangesAsync();
 
+            // Retrieve the ID of the newly created package
+            //var packageId = package.PackageId;
+
             //return RedirectToAction("GetPackages");
-            return Ok(/*package*/);
+            return Ok(new { message = "Please create a list of sequences with + button."/*, packageId */});
         }
 
 
@@ -72,7 +87,7 @@ namespace AttendanceAPI3.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<List<PackegeListDto>>> DataOfPackage(int id)
+        public async Task<ActionResult<List<PackageDataDto>>> DataOfPackage(int id)
         {
             var data = await _context.Packages
                 .Where(p => p.PackageId == id)
@@ -83,7 +98,10 @@ namespace AttendanceAPI3.Controllers
                     PackageDescription=p.PackageDescription,
                     StartTime = p.StartTime,
                     EndTime = p.EndTime,
-                    creator = p.User.Username
+                    creator = p.User.Username,
+                    ExcelSheetUrl = Url.Action(nameof(GetExcelSheet), new { id }),
+                    FacesFolderUrl = Url.Action(nameof(GetFacesFolder), new { id }),
+                    VoicesFolderUrl = Url.Action(nameof(GetVoicesFolder), new { id })
                 })
                 .FirstOrDefaultAsync();
 

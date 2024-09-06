@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using AttendanceAPI3.Models.DTOs;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using AttendanceAPI3.Models;
+using AttendanceAPI3.Models.DTOs;
 
 
 namespace AttendanceAPI3.Controllers

@@ -47,7 +47,20 @@ namespace AttendanceAPI3.Models
                 .WithMany(u => u.Sessions)
                 .HasForeignKey(s => s.User_Id)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
+                                                    // Unique constraint for PackageName in Package table
+            modelBuilder.Entity<Package>()
+                .HasIndex(p => p.PackageName)
+                .IsUnique();
 
+            // Unique constraint for SequanceName in Sequance table
+            modelBuilder.Entity<Sequance>()
+                .HasIndex(s => s.SequanceName)
+                .IsUnique();
+
+            // Unique constraint for SessionName in Session table
+            modelBuilder.Entity<Session>()
+                .HasIndex(s => s.SessionName)
+                .IsUnique();
 
             base.OnModelCreating(modelBuilder);
         }
