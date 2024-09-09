@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using AttendanceAPI3.Models;
 using AttendanceAPI3.Models.DTOs;
 
+
 namespace AttendanceAPI3.Controllers
 {
     [Route("api/[controller]")]
@@ -53,9 +54,20 @@ namespace AttendanceAPI3.Controllers
                     EndTime = sequanceDto.EndTime,
                     Sheet = stream3.ToArray() // Store the sheet data as a byte array in the database
                 };
-                //sequance.User_Id = user.UserId;
 
-                sequance.User_Id = id;
+
+
+            var sequanceExists = await _context.Sequances
+          .FirstOrDefaultAsync(p => p.SequanceName == sequanceDto.SequanceName);
+
+            if (sequanceExists != null)
+            {
+                return BadRequest(new { message = "A Sequance with this name already exists." });
+            }
+
+            //sequance.User_Id = user.UserId;
+
+            sequance.User_Id = id;
                 sequance.Package_Id = null;
                 _context.Sequances.Add(sequance);
                 await _context.SaveChangesAsync();
@@ -96,7 +108,16 @@ namespace AttendanceAPI3.Controllers
             {
                 return BadRequest();
             }
-                sequance.Sheet = p1.Sheet;
+
+            var sequanceExists = await _context.Sequances
+          .FirstOrDefaultAsync(p => p.SequanceName == sequanceWithPackageDto.SequanceName);
+
+            if (sequanceExists != null)
+            {
+                return BadRequest(new { message = "A Sequance with this name already exists." });
+            }
+
+            sequance.Sheet = p1.Sheet;
                 sequance.FacesFolder = p1.FacesFolder;
                 sequance.VoicesFolder = p1.VoicesFolder;
                 //sequance.User_Id = user.UserId;
@@ -126,6 +147,18 @@ namespace AttendanceAPI3.Controllers
 
             return Ok(sequanceSummaries);
         }
+
+        [HttpGet("userSequances/{userId}")]
+        public async Task<IActionResult> GetUserSequances(int userId)
+        {
+            var packages = await _context.Sequances
+                .Where(p => p.User_Id == userId)
+                .Select(p => new { p.SequanceName })
+                .ToListAsync();
+
+            return Ok(packages);
+        }
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<List<SequanceDataDto>>> DataOfSequance(int id)

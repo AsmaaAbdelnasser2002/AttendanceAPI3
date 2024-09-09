@@ -62,6 +62,12 @@ namespace AttendanceAPI3.Models
                 .HasIndex(s => s.SessionName)
                 .IsUnique();
 
+            // Unique constraint for Email in Users table
+            modelBuilder.Entity<User>()
+                .HasIndex(s => s.Email)
+                .IsUnique();
+
+
             base.OnModelCreating(modelBuilder);
         }
     }

@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using AttendanceAPI3.Models;
 using AttendanceAPI3.Models.DTOs;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+
 
 
 namespace AttendanceAPI3.Controllers
@@ -38,6 +39,14 @@ namespace AttendanceAPI3.Controllers
                 UserRole = userDto.UserRole
             };
 
+            var EmailExists = await _context.Users
+              .FirstOrDefaultAsync(p => p.Email == userDto.Email);
+
+            if (EmailExists != null)
+            {
+                return BadRequest(new { message = "An Email is already exists." });
+            }
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return Ok(new { message = "Registeration is Successfull" });    
@@ -70,7 +79,7 @@ namespace AttendanceAPI3.Controllers
             if (user == null)
                 return Unauthorized("Invalid username or email.");
 
-            var result = _context.Users.Where(a => a.UserPassword.Equals(pass_hash.Hashpassword(loginDto.UserPassword))).FirstOrDefault(); ;
+            var result = _context.Users.Where(a => a.UserPassword.Equals(pass_hash.Hashpassword(loginDto.UserPassword)) && a.Email == loginDto.Email).FirstOrDefault(); 
 
             if (result == null)
                 return Unauthorized("Invalid password.");

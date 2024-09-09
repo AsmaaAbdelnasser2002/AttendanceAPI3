@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Storage;
 using AttendanceAPI3.Models;
 using AttendanceAPI3.Models.DTOs;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AttendanceAPI3.Controllers
 {
@@ -35,6 +35,9 @@ namespace AttendanceAPI3.Controllers
             //{
             //    return Unauthorized(new { message = "You are not authenticated. Please log in with Instructor role." });
             //}
+
+            // Check if PackageName already exists
+
             using var stream1 = new MemoryStream();
             await packageDto.FacesFolder.CopyToAsync(stream1);
 
@@ -56,6 +59,15 @@ namespace AttendanceAPI3.Controllers
                 EndTime = packageDto.EndTime,
                 Sheet = stream3.ToArray() // Store the sheet data as a byte array in the database
             };
+
+            var packageExists = await _context.Packages
+               .FirstOrDefaultAsync(p => p.PackageName == packageDto.PackageName);
+
+            if (packageExists != null)
+            {
+                return BadRequest(new { message = "A package with this name already exists." });
+            }
+
             //package.User_Id=user.UserId;
             package.User_Id = id;
             _context.Packages.Add(package);
@@ -84,6 +96,17 @@ namespace AttendanceAPI3.Controllers
                 .ToListAsync();
 
             return Ok(packageSummaries);
+        }
+
+        [HttpGet("userPackages/{userId}")]
+        public async Task<IActionResult> GetUserPackages(int userId)
+        {
+            var packages = await _context.Packages
+                .Where(p => p.User_Id == userId) 
+                .Select(p => new { p.PackageName })
+                .ToListAsync();
+
+            return Ok(packages);
         }
 
         [HttpGet("{id}")]

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using AttendanceAPI3.Models;
 using AttendanceAPI3.Models.DTOs;
 
+
 namespace AttendanceAPI3.Controllers
 {
     [Route("api/[controller]")]
@@ -52,6 +53,15 @@ namespace AttendanceAPI3.Controllers
                 EndTime = sessionDto.EndTime,
                 Sheet = stream3.ToArray() // Store the sheet data as a byte array in the database
             };
+
+            var sessionExists = await _context.Sessions
+         .FirstOrDefaultAsync(p => p.SessionName == sessionDto.SessionName);
+
+            if (sessionExists != null)
+            {
+                return BadRequest(new { message = "A Session with this name already exists." });
+            }
+
             //session.User_Id = user.UserId;
             session.User_Id = id;
             session.Sequance_Id = null;
@@ -90,6 +100,15 @@ namespace AttendanceAPI3.Controllers
             {
                 return BadRequest();
             }
+
+            var sessionExists = await _context.Sessions
+         .FirstOrDefaultAsync(p => p.SessionName == sessionWithSequanceDto.SessionName);
+
+            if (sessionExists != null)
+            {
+                return BadRequest(new { message = "A Session with this name already exists." });
+            }
+
             session.Sheet = p1.Sheet;
             session.FacesFolder = p1.FacesFolder;
             session.VoicesFolder = p1.VoicesFolder;
