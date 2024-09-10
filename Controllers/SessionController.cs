@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AttendanceAPI3.Models;
 using AttendanceAPI3.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace AttendanceAPI3.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SessionController : ControllerBase
     {
         private readonly AttendanceContext _context;
@@ -17,7 +19,7 @@ namespace AttendanceAPI3.Controllers
             _context = context;
         }
         [HttpPost("create/{id}")]
-        public async Task<IActionResult> createSessionWithoutSequance([FromForm] SessionDto sessionDto, [FromRoute] int id)
+        public async Task<IActionResult> createSessionWithoutSequance([FromForm] SessionDto sessionDto, [FromRoute] string id)
         {
             //Response.Headers.Add("Cache-Control", "no-cache,no-store,must-revalidate");
             //Response.Headers.Add("Pragma", "no-cache");
@@ -72,7 +74,7 @@ namespace AttendanceAPI3.Controllers
         }
 
         [HttpPost("createWithSequance/{id}")]
-        public async Task<IActionResult> CreateSessionWithSequance([FromForm] SessionWithSequanceDto sessionWithSequanceDto, [FromRoute] int id)
+        public async Task<IActionResult> CreateSessionWithSequance([FromForm] SessionWithSequanceDto sessionWithSequanceDto, [FromRoute] string id)
         {
             //Response.Headers.Add("Cache-Control", "no-cache,no-store,must-revalidate");
             //Response.Headers.Add("Pragma", "no-cache");
@@ -131,7 +133,7 @@ namespace AttendanceAPI3.Controllers
                     SessionName = p.SessionName,
                     StartTime = p.StartTime,
                     EndTime = p.EndTime,
-                    creator = p.User.Username
+                    creator = p.User.UserName
                 })
                 .ToListAsync();
 
@@ -151,7 +153,7 @@ namespace AttendanceAPI3.Controllers
                     SessionDescription = p.SessionDescription,
                     StartTime = p.StartTime,
                     EndTime = p.EndTime,
-                    creator = p.User.Username,
+                    creator = p.User.UserName,
                     ExcelSheetUrl = Url.Action(nameof(GetExcelSheet), new { id }),
                     FacesFolderUrl = Url.Action(nameof(GetFacesFolder), new { id }),
                     VoicesFolderUrl = Url.Action(nameof(GetVoicesFolder), new { id })

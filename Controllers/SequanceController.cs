@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AttendanceAPI3.Models;
 using AttendanceAPI3.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace AttendanceAPI3.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SequanceController : ControllerBase
     {
 
@@ -19,7 +21,7 @@ namespace AttendanceAPI3.Controllers
             _context = context;
         }
         [HttpPost("create/{id}")]
-        public async Task<IActionResult> createSequanceWithoutPackage([FromForm] SequanceDto sequanceDto, [FromRoute] int id)
+        public async Task<IActionResult> createSequanceWithoutPackage([FromForm] SequanceDto sequanceDto, [FromRoute] string id)
         {
             //Response.Headers.Add("Cache-Control", "no-cache,no-store,must-revalidate");
             //Response.Headers.Add("Pragma", "no-cache");
@@ -80,7 +82,7 @@ namespace AttendanceAPI3.Controllers
 
 
         [HttpPost("createWithPackage/{id}")]
-        public async Task<IActionResult> CreateSequanceWithPackage([FromForm] SequanceWithPackageDto sequanceWithPackageDto, [FromRoute] int id)
+        public async Task<IActionResult> CreateSequanceWithPackage([FromForm] SequanceWithPackageDto sequanceWithPackageDto, [FromRoute] string id)
         {
             //Response.Headers.Add("Cache-Control", "no-cache,no-store,must-revalidate");
             //Response.Headers.Add("Pragma", "no-cache");
@@ -141,7 +143,7 @@ namespace AttendanceAPI3.Controllers
                     SequanceName = p.SequanceName,
                     StartTime = p.StartTime,
                     EndTime = p.EndTime,
-                    creator = p.User.Username
+                    creator = p.User.UserName
                 })
                 .ToListAsync();
 
@@ -149,7 +151,7 @@ namespace AttendanceAPI3.Controllers
         }
 
         [HttpGet("userSequances/{userId}")]
-        public async Task<IActionResult> GetUserSequances(int userId)
+        public async Task<IActionResult> GetUserSequances(string userId)
         {
             var packages = await _context.Sequances
                 .Where(p => p.User_Id == userId)
@@ -172,7 +174,7 @@ namespace AttendanceAPI3.Controllers
                     SequanceDescription = p.SequanceDescription,
                     StartTime = p.StartTime,
                     EndTime = p.EndTime,
-                    creator = p.User.Username,
+                    creator = p.User.UserName,
                     ExcelSheetUrl = Url.Action(nameof(GetExcelSheet), new { id }),
                     FacesFolderUrl = Url.Action(nameof(GetFacesFolder), new { id }),
                     VoicesFolderUrl = Url.Action(nameof(GetVoicesFolder), new { id })

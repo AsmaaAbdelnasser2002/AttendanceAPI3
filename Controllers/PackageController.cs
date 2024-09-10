@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 using AttendanceAPI3.Models;
 using AttendanceAPI3.Models.DTOs;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AttendanceAPI3.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PackageController : ControllerBase
     {
         private readonly AttendanceContext _context;
@@ -21,7 +23,7 @@ namespace AttendanceAPI3.Controllers
         }
 
         [HttpPost("create/{id}")]
-        public async Task<IActionResult> createPackage([FromForm] PackageDto packageDto, [FromRoute] int id)
+        public async Task<IActionResult> createPackage([FromForm] PackageDto packageDto, [FromRoute] string id)
         {
             //Response.Headers.Add("Cache-Control", "no-cache,no-store,must-revalidate");
             //Response.Headers.Add("Pragma", "no-cache");
@@ -91,7 +93,7 @@ namespace AttendanceAPI3.Controllers
                     PackageName = p.PackageName,
                     StartTime = p.StartTime,
                     EndTime = p.EndTime,
-                    creator = p.User.Username
+                    creator = p.User.UserName
                 })
                 .ToListAsync();
 
@@ -99,7 +101,7 @@ namespace AttendanceAPI3.Controllers
         }
 
         [HttpGet("userPackages/{userId}")]
-        public async Task<IActionResult> GetUserPackages(int userId)
+        public async Task<IActionResult> GetUserPackages(string userId)
         {
             var packages = await _context.Packages
                 .Where(p => p.User_Id == userId) 
@@ -121,7 +123,7 @@ namespace AttendanceAPI3.Controllers
                     PackageDescription=p.PackageDescription,
                     StartTime = p.StartTime,
                     EndTime = p.EndTime,
-                    creator = p.User.Username,
+                    creator = p.User.UserName,
                     ExcelSheetUrl = Url.Action(nameof(GetExcelSheet), new { id }),
                     FacesFolderUrl = Url.Action(nameof(GetFacesFolder), new { id }),
                     VoicesFolderUrl = Url.Action(nameof(GetVoicesFolder), new { id })

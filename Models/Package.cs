@@ -34,7 +34,7 @@ namespace AttendanceAPI3.Models
         public DateTime EndTime { get; set; }
 
         [ForeignKey("User")]
-        public int User_Id { get; set; }
+        public string User_Id { get; set; }
         public virtual User User { get; set; }
         public virtual List<Sequance>? Sequances { get; set; }
     }

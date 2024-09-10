@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace AttendanceAPI3.Models
 {
-    public class AttendanceContext : DbContext
+    public class AttendanceContext : IdentityDbContext<User>
     {
         public AttendanceContext(DbContextOptions<AttendanceContext> options)
             : base(options)
         {
         }
 
-        public DbSet<User> Users { get; set; }
+       // public DbSet<User> Users { get; set; }
         public DbSet<Package> Packages { get; set; }
         public DbSet<Sequance> Sequances { get; set; }
         public DbSet<Session> Sessions { get; set; }

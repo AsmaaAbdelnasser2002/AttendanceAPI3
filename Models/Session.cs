@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AttendanceAPI3.Models
-{ 
+{
     public class Session
     {
         [Key]
@@ -36,8 +36,10 @@ namespace AttendanceAPI3.Models
         [Required]
         public DateTime EndTime { get; set; }
 
+        public TimeSpan? TimeLimit { get; set; }
+
         [ForeignKey("User")]
-        public int User_Id { get; set; }
+        public string User_Id { get; set; }
         public virtual User User { get; set; }
 
         [ForeignKey("Sequance")]

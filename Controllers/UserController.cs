@@ -3,6 +3,11 @@ using AttendanceAPI3.Models;
 using AttendanceAPI3.Models.DTOs;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 
 
@@ -12,97 +17,104 @@ namespace AttendanceAPI3.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly AttendanceContext _context;
-
-        public UsersController(AttendanceContext context)
+        public UsersController(UserManager<User> userManager,IConfiguration configuration)
         {
-            _context = context;
+            _userManager = userManager;
+            this.configuration = configuration;
         }
+        private readonly UserManager<User> _userManager;
+        private readonly IConfiguration configuration;
 
         // POST: api/Users
-        [HttpPost]
+        [HttpPost("Register")]
         public async Task<IActionResult> CreateUser([FromForm]UserDto userDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            string input = userDto.UserPassword;
-            var user = new User
+            User user=new()
             {
-                Username = userDto.Username,
+                UserName = userDto.Username,
                 Email = userDto.Email,
-                UserPassword = pass_hash.Hashpassword(input), 
                 Age = userDto.Age,
                 Gender = userDto.Gender,
-                ConfirmPassword=userDto.ConfirmPassword,
                 UserRole = userDto.UserRole
             };
-
-            var EmailExists = await _context.Users
-              .FirstOrDefaultAsync(p => p.Email == userDto.Email);
+            var EmailExists = await _userManager.Users
+                            .FirstOrDefaultAsync(p => p.Email == userDto.Email);
 
             if (EmailExists != null)
             {
                 return BadRequest(new { message = "An Email is already exists." });
             }
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Registeration is Successfull" });    
-        }
-
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
+            IdentityResult result = await _userManager.CreateAsync(user,userDto.UserPassword);
+            if (result.Succeeded)
             {
-                return NotFound();
+                return Ok("Succeeded");
+            }
+            else
+            {
+                foreach (var item in result.Errors)
+                {
+                    ModelState.AddModelError("",item.Description);
+                }
+                return BadRequest(ModelState);
             }
 
-            return Ok(user);
+
+
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromForm] LoginDto loginDto)
         {
-            
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
 
-            var user = await _context.Users
-                .SingleOrDefaultAsync(u => u.Email == loginDto.Email);
-
-            if (user == null)
-                return Unauthorized("Invalid username or email.");
-
-            var result = _context.Users.Where(a => a.UserPassword.Equals(pass_hash.Hashpassword(loginDto.UserPassword)) && a.Email == loginDto.Email).FirstOrDefault(); 
-
-            if (result == null)
-                return Unauthorized("Invalid password.");
-
-            var sessionId = HttpContext.Session.Id;
-            HttpContext.Session.SetString("Email", loginDto.Email);
-            Response.Cookies.Append("SessionId", sessionId, new CookieOptions
+            if (ModelState.IsValid)
             {
-                HttpOnly = true,
-                Secure = true,
-                Expires = DateTime.UtcNow.AddMinutes(30)
-            });
-
-            return Ok(new { UserId = user.UserId, Username = user.Username });
+                User? user = await _userManager.FindByEmailAsync(loginDto.Email);
+                if (user != null)
+                {
+                    if (await _userManager.CheckPasswordAsync(user,loginDto.UserPassword))
+                    {
+                        var claims = new List<Claim>();
+                        claims.Add(new Claim(ClaimTypes.Name, user.UserName));
+                        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
+                        claims.Add(new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()));
+                        var roles =await _userManager.GetRolesAsync(user);
+                        foreach (var role in roles)
+                        {
+                            claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
+                        }
+                        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]));
+                        var sc = new SigningCredentials(key,SecurityAlgorithms.HmacSha256);
+                        var token = new JwtSecurityToken(
+                            claims: claims,
+                            issuer: configuration["JWT:Issuer"],
+                            audience: configuration["JWT:Audience"],
+                            expires: DateTime.Now.AddDays(1),
+                            signingCredentials: sc
+                            ) ;
+                        var _token = new
+                        {
+                           token= new JwtSecurityTokenHandler().WriteToken(token),
+                           expiration=token.ValidTo,
+                        };
+                        return Ok( _token );
+                    }
+                    else 
+                    {
+                        return Unauthorized();  
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("","Email is invalid.");
+                }
+            }
+            return BadRequest(ModelState);
         }
 
-        // POST: api/Users/logout
-        [HttpPost("logout")]
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Clear();
-            Response.Cookies.Delete("SessionId");
-            return Ok(new { message = "Successfully logged out." });
-        }
+        
     }
 }

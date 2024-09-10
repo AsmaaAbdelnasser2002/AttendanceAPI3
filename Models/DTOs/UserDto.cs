@@ -24,10 +24,7 @@ namespace AttendanceAPI3.Models.DTOs
         [RegularExpression(@"^(?=.*\d)(?=.*[@$!%#*?&])[A-Za-z\d@$!%#*?&]{8,}$", ErrorMessage = "Enter a strong password that contains 8 English letters, a number and a special symbol(&@#%!).")]
         public string UserPassword { get; set; }
 
-        [NotMapped]
-        [Required(ErrorMessage = "Please confirm your password.")]
-        [Compare("UserPassword", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; }
+        
 
         [Required(ErrorMessage = "Your age is required. ")]
         [Range(18, 80)]

@@ -1,5 +1,7 @@
 using AttendanceAPI3.Models;
+using AttendanceAPI3.Extentions;
 using Microsoft.AspNetCore.Cors.Infrastructure;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace AttendanceAPI3
@@ -13,16 +15,10 @@ namespace AttendanceAPI3
             // Add services to the container.
             builder.Services.AddDbContext<AttendanceContext>(options =>
                options.UseSqlServer(builder.Configuration.GetConnectionString("con")));
-            builder.Services.AddDistributedMemoryCache();
-            builder.Services.AddHttpContextAccessor();
-            builder.Services.AddSession(
-                options =>
-                {
-                    options.IdleTimeout = TimeSpan.FromMinutes(30);
-                    options.Cookie.HttpOnly = true;
-                    options.Cookie.IsEssential = true;
-                }
-                );
+
+
+            builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AttendanceContext>();
+
             builder.Services.AddCors(CorsOptions => {
                 CorsOptions.AddPolicy("MyPolicy", CorsPolicyBuilder =>
                 {
@@ -32,7 +28,8 @@ namespace AttendanceAPI3
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGenJwtAuth();
+            builder.Services.AddCustomJwtAuth(builder.Configuration);
 
             var app = builder.Build();
 
@@ -43,9 +40,10 @@ namespace AttendanceAPI3
                 app.UseSwaggerUI();
             }
             app.UseStaticFiles();
-            app.UseSession();
+
             //setting core policy
             app.UseCors("MyPolicy");
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

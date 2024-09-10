@@ -26,7 +26,7 @@ namespace AttendanceAPI3.Models
         public string Status { get; set; }
 
         [ForeignKey("User")]
-        public int User_Id { get; set; }
+        public string User_Id { get; set; }
         public virtual User User { get; set; }
 
         [ForeignKey("Session")]
