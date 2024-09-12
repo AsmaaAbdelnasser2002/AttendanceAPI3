@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AttendanceAPI3.Models.DTOs
 {
-    public class SequanceWithPackageDto
+    public class EditSequanceDto
     {
         [Required]
         [StringLength(100)]
@@ -16,13 +16,16 @@ namespace AttendanceAPI3.Models.DTOs
         [StringLength(250)]
         public string SequanceDescription { get; set; }
 
+        public IFormFile? Sheet { get; set; }
+
+        public IFormFile? FacesFolder { get; set; }
+
+        public IFormFile? VoicesFolder { get; set; }
+
         [Required]
         public DateTime StartTime { get; set; }
 
         [Required]
         public DateTime EndTime { get; set; }
-
-        [Required]
-        public string NameOfPackage { get; set; }   
     }
 }

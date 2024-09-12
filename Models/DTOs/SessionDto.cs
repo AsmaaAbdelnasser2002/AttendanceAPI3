@@ -22,7 +22,7 @@ namespace AttendanceAPI3.Models.DTOs
         [StringLength(100)]
         public string SessionDescription { get; set; }
 
-        public IFormFile Sheet { get; set; }
+        public IFormFile? Sheet { get; set; }
 
         public IFormFile? FacesFolder { get; set; }
 
@@ -33,5 +33,9 @@ namespace AttendanceAPI3.Models.DTOs
 
         [Required]
         public DateTime EndTime { get; set; }
+
+        public DateTime TimeLimit { get; set; }
+
+        public string? NameOfSequance { get; set; }
     }
 }

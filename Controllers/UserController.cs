@@ -99,6 +99,7 @@ namespace AttendanceAPI3.Controllers
                         {
                            token= new JwtSecurityTokenHandler().WriteToken(token),
                            expiration=token.ValidTo,
+                           userId = user.Id
                         };
                         return Ok( _token );
                     }

@@ -20,7 +20,7 @@ namespace AttendanceAPI3.Models
 
         [StringLength(250)]
         public string SequanceDescription { get; set; }
-
+        
         public byte[] Sheet { get; set; }
 
         public byte[]? FacesFolder { get; set; }

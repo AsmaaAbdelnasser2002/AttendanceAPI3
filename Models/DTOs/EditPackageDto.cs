@@ -1,35 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceAPI3.Models.DTOs
 {
-    public class SequanceDto
+    public class EditPackageDto
     {
         [Required]
         [StringLength(100)]
-        public string SequanceName { get; set; }
+        public string PackageName { get; set; }
 
         [StringLength(250)]
-        public string SequanceDescription { get; set; }
+        public string PackageDescription { get; set; }
 
         public IFormFile? Sheet { get; set; }
 
         public IFormFile? FacesFolder { get; set; }
 
         public IFormFile? VoicesFolder { get; set; }
-
         [Required]
         public DateTime StartTime { get; set; }
 
         [Required]
         public DateTime EndTime { get; set; }
-
-        public string? NameOfPackage { get; set; }
     }
 }

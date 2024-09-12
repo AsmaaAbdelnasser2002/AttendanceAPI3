@@ -23,7 +23,8 @@ namespace AttendanceAPI3.Models
 
         [StringLength(100)]
         public string SessionDescription { get; set; }
-
+        
+        
         public byte[] Sheet { get; set; }
 
         public byte[]? FacesFolder { get; set; }
@@ -36,7 +37,8 @@ namespace AttendanceAPI3.Models
         [Required]
         public DateTime EndTime { get; set; }
 
-        public TimeSpan? TimeLimit { get; set; }
+        public DateTime TimeLimit { get; set; }
+        //public TimeSpan? TimeLimit { get; set; }
 
         [ForeignKey("User")]
         public string User_Id { get; set; }

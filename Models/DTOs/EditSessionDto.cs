@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace AttendanceAPI3.Models.DTOs
 {
-    public class SessionWithSequanceDto
+    public class EditSessionDto
     {
+
         [Required]
         [StringLength(100)]
         public string SessionName { get; set; }
@@ -16,8 +17,14 @@ namespace AttendanceAPI3.Models.DTOs
         [StringLength(255)]
         public string SessionPlace { get; set; }
 
-        [StringLength(250)]
+        [StringLength(100)]
         public string SessionDescription { get; set; }
+
+        public IFormFile? Sheet { get; set; }
+
+        public IFormFile? FacesFolder { get; set; }
+
+        public IFormFile? VoicesFolder { get; set; }
 
         [Required]
         public DateTime StartTime { get; set; }
@@ -25,7 +32,7 @@ namespace AttendanceAPI3.Models.DTOs
         [Required]
         public DateTime EndTime { get; set; }
 
-        [Required]
-        public string NameOfSequance { get; set; }
+        public DateTime TimeLimit { get; set; }
+       
     }
 }

@@ -20,6 +20,8 @@ namespace AttendanceAPI3.Models.DTOs
 
         public DateTime EndTime { get; set; }
 
+        public DateTime TimeLimit { get; set; }
+
         public string creator { get; set; }
 
 

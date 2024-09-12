@@ -7,6 +7,9 @@ using AttendanceAPI3.Models;
 using AttendanceAPI3.Models.DTOs;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace AttendanceAPI3.Controllers
 {
@@ -22,21 +25,10 @@ namespace AttendanceAPI3.Controllers
             _context = context;
         }
 
-        [HttpPost("create/{id}")]
-        public async Task<IActionResult> createPackage([FromForm] PackageDto packageDto, [FromRoute] string id)
+        [HttpPost("create")]
+        public async Task<IActionResult> createPackage([FromForm] PackageDto packageDto)
         {
-            //Response.Headers.Add("Cache-Control", "no-cache,no-store,must-revalidate");
-            //Response.Headers.Add("Pragma", "no-cache");
-            //var name = HttpContext.Session.GetString("Email");
-            //var user = await _context.Users.FirstOrDefaultAsync(m => m.Email == HttpContext.Session.GetString("Email"));
-            //if (string.IsNullOrEmpty(name))
-            //{
-            //    return Unauthorized(new { message = "You are not authenticated. Please log in." });
-            //}
-            //if (user.UserRole != "Instructor")
-            //{
-            //    return Unauthorized(new { message = "You are not authenticated. Please log in with Instructor role." });
-            //}
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             // Check if PackageName already exists
 
@@ -69,21 +61,15 @@ namespace AttendanceAPI3.Controllers
             {
                 return BadRequest(new { message = "A package with this name already exists." });
             }
-
-            //package.User_Id=user.UserId;
-            package.User_Id = id;
+            package.User_Id = userId;
             _context.Packages.Add(package);
             await _context.SaveChangesAsync();
-
-            // Retrieve the ID of the newly created package
-            //var packageId = package.PackageId;
-
-            //return RedirectToAction("GetPackages");
-            return Ok(new { message = "Please create a list of sequences with + button."/*, packageId */});
+            //var packageID = package.PackageId;
+            return Ok(new { message = "Please create a list of sequences with + button."/*, packageID */});
         }
 
 
-        [HttpGet]
+        [HttpGet("All_Packages")]
         public async Task<ActionResult<List<PackegeListDto>>> GetPackages()
         {
             var packageSummaries = await _context.Packages
@@ -100,9 +86,10 @@ namespace AttendanceAPI3.Controllers
             return Ok(packageSummaries);
         }
 
-        [HttpGet("userPackages/{userId}")]
-        public async Task<IActionResult> GetUserPackages(string userId)
+        [HttpGet("userPackages")]
+        public async Task<IActionResult> GetUserPackages()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var packages = await _context.Packages
                 .Where(p => p.User_Id == userId) 
                 .Select(p => new { p.PackageName })
@@ -111,7 +98,7 @@ namespace AttendanceAPI3.Controllers
             return Ok(packages);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("Package_Data/{id}")]
         public async Task<ActionResult<List<PackageDataDto>>> DataOfPackage(int id)
         {
             var data = await _context.Packages
@@ -131,6 +118,159 @@ namespace AttendanceAPI3.Controllers
                 .FirstOrDefaultAsync();
 
             return Ok(data);
+        }
+
+        [HttpPut("Edit_Package/{id}")]
+        public async Task<IActionResult> EditPackage(int id, [FromForm] EditPackageDto editPackageDto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var package = await _context.Packages.FindAsync(id);
+
+            if (package == null)
+            {
+                return NotFound();
+            }
+
+            if (package.User_Id != userId)
+            {
+                return Unauthorized();
+            }
+
+            package.PackageName = editPackageDto.PackageName;
+            package.PackageDescription = editPackageDto.PackageDescription;
+            package.StartTime = editPackageDto.StartTime;
+            package.EndTime = editPackageDto.EndTime;
+
+            if (editPackageDto.FacesFolder != null)
+            {
+                using var stream1 = new MemoryStream();
+                await editPackageDto.FacesFolder.CopyToAsync(stream1);
+                package.FacesFolder = stream1.ToArray();
+            }
+
+            if (editPackageDto.VoicesFolder != null)
+            {
+                using var stream2 = new MemoryStream();
+                await editPackageDto.VoicesFolder.CopyToAsync(stream2);
+                package.VoicesFolder = stream2.ToArray();
+            }
+
+            if (editPackageDto.Sheet != null)
+            {
+                using var stream3 = new MemoryStream();
+                await editPackageDto.Sheet.CopyToAsync(stream3);
+                package.Sheet = stream3.ToArray();
+            }
+
+            _context.Packages.Update(package);
+            await _context.SaveChangesAsync();
+
+            var sequanceList = await _context.Sequances
+               .Where(s => s.Package_Id == package.PackageId)
+               .ToListAsync();
+
+            foreach (var s in sequanceList)
+            {
+                if (s.Package_Id == package.PackageId)
+                {
+                    if (package.Sheet != s.Sheet)
+                    {
+                        s.Sheet = package.Sheet;
+                    }
+                    if (package.FacesFolder != s.FacesFolder)
+                    {
+                        s.FacesFolder = package.FacesFolder;
+                    }
+                    if (package.VoicesFolder != s.VoicesFolder)
+                    {
+                        s.VoicesFolder = package.VoicesFolder;
+                    }
+                }
+            }
+            // Update the sequences
+            _context.Sequances.UpdateRange(sequanceList);
+            await _context.SaveChangesAsync();
+
+            foreach (var s in sequanceList)
+            {
+                var sessionList = await _context.Sessions
+               .Where(se => se.Sequance_Id == s.SequanceId)
+               .ToListAsync();
+
+                foreach (var session in sessionList)
+                {
+                    if (session.Sequance_Id == s.SequanceId)
+                    {
+                        if (session.Sheet != s.Sheet)
+                        {
+                            session.Sheet = s.Sheet;
+                        }
+                        if (session.FacesFolder != s.FacesFolder)
+                        {
+                            session.FacesFolder = s.FacesFolder;
+                        }
+                        if (session.VoicesFolder != s.VoicesFolder)
+                        {
+                            session.VoicesFolder = s.VoicesFolder;
+                        }
+                    }
+                }
+
+                // Update the sessions
+                _context.Sessions.UpdateRange(sessionList);
+                await _context.SaveChangesAsync();
+            }
+
+
+            return Ok(new { message = "Package updated successfully." });
+        }
+
+        [HttpDelete("Delete_Package/{id}")]
+        public async Task<IActionResult> DeletePackage(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var package = await _context.Packages.FindAsync(id);
+
+            if (package == null)
+            {
+                return NotFound();
+            }
+
+            if (package.User_Id != userId)
+            {
+                return Unauthorized();
+            }
+            
+
+            var sequanceList = await _context.Sequances
+               .Where(s => s.Package_Id == package.PackageId)
+               .ToListAsync();
+            foreach (var sequance in sequanceList)
+            {
+                var sessionList = await _context.Sessions
+                .Where(se => se.Sequance_Id == sequance.SequanceId)
+                .ToListAsync();
+                foreach (var session in sessionList)
+                {
+                    var recordList = await _context.AttendanceRecords
+                    .Where(r => r.Session_Id == session.SessionId)
+                    .ToListAsync();
+                    _context.AttendanceRecords.RemoveRange(recordList);
+                    await _context.SaveChangesAsync();
+                    break;
+                }
+                _context.Sessions.RemoveRange(sessionList);
+                await _context.SaveChangesAsync();
+                break;
+            }
+            _context.Sequances.RemoveRange(sequanceList);
+            await _context.SaveChangesAsync();
+
+            _context.Packages.Remove(package);
+            await _context.SaveChangesAsync();
+
+
+            return Ok(new { message = "Package deleted successfully." });
         }
 
         [HttpGet("download/sheet/{id}")]
