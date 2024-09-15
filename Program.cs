@@ -12,12 +12,7 @@ namespace AttendanceAPI3
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            builder.Services.AddDbContext<AttendanceContext>(options =>
-               options.UseSqlServer(builder.Configuration.GetConnectionString("con")));
-
-
-            builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AttendanceContext>();
+			builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AttendanceContext>();
 
             builder.Services.AddCors(CorsOptions => {
                 CorsOptions.AddPolicy("MyPolicy", CorsPolicyBuilder =>
@@ -25,13 +20,20 @@ namespace AttendanceAPI3
                     CorsPolicyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
                 });
             });
-            builder.Services.AddControllers();
+           
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGenJwtAuth();
             builder.Services.AddCustomJwtAuth(builder.Configuration);
 
-            var app = builder.Build();
+			builder.Services.AddControllers();
+			builder.Services.AddDbContext<AttendanceContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("con")));
+
+			builder.Services.AddSingleton<QRCodeService>();
+			builder.Services.AddHostedService<QRCodeRegenerationService>();
+
+			var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -51,5 +53,5 @@ namespace AttendanceAPI3
 
             app.Run();
         }
-    }
+	}
 }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace AttendanceAPI3.Migrations
 {
-    public partial class init : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -229,7 +229,7 @@ namespace AttendanceAPI3.Migrations
                     VoicesFolder = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    TimeLimit = table.Column<TimeSpan>(type: "time", nullable: true),
+                    TimeLimit = table.Column<DateTime>(type: "datetime2", nullable: false),
                     User_Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Sequance_Id = table.Column<int>(type: "int", nullable: true)
                 },

@@ -271,7 +271,7 @@ namespace AttendanceAPI3.Controllers
             foreach (var session in sessionList)
             {
                 var recordList = await _context.AttendanceRecords
-                .Where(r => r.Session_Id == session.SessionId)
+                .Where(r => r.SessionId == session.SessionId)
                 .ToListAsync();
                 _context.AttendanceRecords.RemoveRange(recordList);
                 await _context.SaveChangesAsync();

@@ -20,11 +20,11 @@ namespace AttendanceAPI3.Models
         public DbSet<Sequance> Sequances { get; set; }
         public DbSet<Session> Sessions { get; set; }
         public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+		public DbSet<SessionQrCode> SessionQRCodes { get; set; }
 
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var connectionString = "Data Source=DESKTOP-LU175Q4\\SQLEXPRESS01;Initial Catalog=Attendance3;Integrated Security=True; Trusted_Connection=True; TrustServerCertificate=True; MultipleActiveResultSets=true";
+            var connectionString = "Server=.;Initial Catalog=Attendance3;Integrated Security=True; Trusted_Connection=True; TrustServerCertificate=True; MultipleActiveResultSets=true";
 
             optionsBuilder.UseSqlServer(connectionString);
         }
@@ -34,13 +34,13 @@ namespace AttendanceAPI3.Models
             modelBuilder.Entity<AttendanceRecord>()
                 .HasOne(a => a.User)
                 .WithMany(u => u.AttendanceRecords)
-                .HasForeignKey(a => a.User_Id)
+                .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
 
             modelBuilder.Entity<AttendanceRecord>()
                 .HasOne(a => a.Session)
                 .WithMany(s => s.AttendanceRecords)
-                .HasForeignKey(a => a.Session_Id)
+                .HasForeignKey(a => a.SessionId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
 
             modelBuilder.Entity<Session>()

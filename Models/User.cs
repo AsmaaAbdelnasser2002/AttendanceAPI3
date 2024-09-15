@@ -11,10 +11,6 @@ namespace AttendanceAPI3.Models
 {
     public class User : IdentityUser
     {
-        
-
-        
-
         [Required(ErrorMessage = "Your age is required. ")]
         [Range(18, 80)]
         public int Age { get; set; }

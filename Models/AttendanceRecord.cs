@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Collections.Specialized.BitVector32;
+using AttendanceAPI3.Enums;
 
 namespace AttendanceAPI3.Models
 {
@@ -23,14 +24,14 @@ namespace AttendanceAPI3.Models
         [StringLength(20)]
         [RegularExpression(@"^(Present|Absent)$", ErrorMessage = "Invalid Status. Valid Status are 'Present', 'Absent'.")]
 
-        public string Status { get; set; }
+        public AttendanceStatus Status { get; set; }
 
         [ForeignKey("User")]
-        public string User_Id { get; set; }
+        public string UserId { get; set; }
         public virtual User User { get; set; }
 
         [ForeignKey("Session")]
-        public int Session_Id { get; set; }
+        public int SessionId { get; set; }
         public virtual Session Session { get; set; }
     }
 }

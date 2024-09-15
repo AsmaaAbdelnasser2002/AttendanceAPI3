@@ -30,13 +30,12 @@ namespace AttendanceAPI3.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttendanceId"), 1L, 1);
 
-                    b.Property<int>("Session_Id")
+                    b.Property<int>("SessionId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
+                    b.Property<int>("Status")
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("TimeIn")
                         .HasColumnType("datetime2");
@@ -44,15 +43,15 @@ namespace AttendanceAPI3.Migrations
                     b.Property<DateTime?>("TimeOut")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("User_Id")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("AttendanceId");
 
-                    b.HasIndex("Session_Id");
+                    b.HasIndex("SessionId");
 
-                    b.HasIndex("User_Id");
+                    b.HasIndex("UserId");
 
                     b.ToTable("AttendanceRecords");
                 });
@@ -217,6 +216,34 @@ namespace AttendanceAPI3.Migrations
                     b.HasIndex("User_Id");
 
                     b.ToTable("Sessions");
+                });
+
+            modelBuilder.Entity("AttendanceAPI3.Models.SessionQrCode", b =>
+                {
+                    b.Property<int>("QRCodeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QRCodeId"), 1L, 1);
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("GeneratedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SessionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("QRCodeId");
+
+                    b.HasIndex("SessionId");
+
+                    b.ToTable("SessionQRCodes");
                 });
 
             modelBuilder.Entity("AttendanceAPI3.Models.User", b =>
@@ -436,13 +463,13 @@ namespace AttendanceAPI3.Migrations
                 {
                     b.HasOne("AttendanceAPI3.Models.Session", "Session")
                         .WithMany("AttendanceRecords")
-                        .HasForeignKey("Session_Id")
+                        .HasForeignKey("SessionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("AttendanceAPI3.Models.User", "User")
                         .WithMany("AttendanceRecords")
-                        .HasForeignKey("User_Id")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -494,6 +521,17 @@ namespace AttendanceAPI3.Migrations
                     b.Navigation("Sequance");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AttendanceAPI3.Models.SessionQrCode", b =>
+                {
+                    b.HasOne("AttendanceAPI3.Models.Session", "Session")
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

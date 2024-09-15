@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AttendanceAPI3.Migrations
 {
     [DbContext(typeof(AttendanceContext))]
-    [Migration("20240910141707_init")]
-    partial class init
+    [Migration("20240912081804_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -199,8 +199,8 @@ namespace AttendanceAPI3.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<TimeSpan?>("TimeLimit")
-                        .HasColumnType("time");
+                    b.Property<DateTime>("TimeLimit")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("User_Id")
                         .IsRequired()
