@@ -26,6 +26,7 @@ namespace AttendanceAPI3.Controllers
 			//_faceRecognitionService = faceRecognitionService;
 		}
 
+
 		private void UpdateOrCreateAttendanceRecord(string userId, DateTime? timeIn, DateTime? timeOut)
 		{
 			// Retrieve user from database
