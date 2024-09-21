@@ -298,54 +298,93 @@ namespace AttendanceAPI3.Controllers
 			return Ok(new { message = "Attendance recorded successfully." });
 		}
 
-		//[HttpPost("UploadImage")]
-		//public async Task<IActionResult> UploadImage([FromForm] IFormFile image, [FromForm] int userId, IFormFile previousImage)
-		//{
-		//	if (image == null || image.Length == 0)
-		//	{
-		//		return BadRequest("Image file is required.");
-		//	}
+		// Mark attendance for a student in a specific session
+		[HttpPost("MarkAttendance/sessionId")]
+		public async Task<ActionResult> MarkAttendance(int sessionId, string userId)
+		{
+			// Check if the session exists
+			var session = await _context.Sessions.FindAsync(sessionId);
+			if (session == null)
+			{
+				return NotFound("Session not found.");
+			}
 
-		//	var user = await _context.Users.FindAsync(userId);
-		//	if (user == null)
-		//	{
-		//		return NotFound("Student not found.");
-		//	}
+			// Check if the student exists
+			var user = await _context.Users.FindAsync(userId);
+			if (user == null)
+			{
+				return NotFound("User not found.");
+			}
 
-		//	// Check if the student image exists in the folder
-		//	string userImageFile = Path.Combine(_userImagesFolder, $"{userId}.jpg");
+			// Create a new attendance record
+			var attendanceRecord = new AttendanceRecord
+			{
+				SessionId = sessionId,
+				UserId = userId,
+				TimeIn = DateTime.Now,
+				Status = AttendanceStatus.Present,  // Assuming you're marking them as 'Present' for now
+				TimeOut = null
+			};
 
-		//	if (!System.IO.File.Exists(userImageFile))
-		//	{
-		//		return NotFound($"No image found for student with ID {userId}");
-		//	}
+			_context.AttendanceRecords.Add(attendanceRecord);
+			await _context.SaveChangesAsync();
 
-		//	// Save the uploaded image temporarily
-		//	var tempFilePath = Path.Combine(Directory.GetCurrentDirectory(), "TempImages", $"{Guid.NewGuid()}.jpg");
-		//	using (var stream = new FileStream(tempFilePath, FileMode.Create))
-		//	{
-		//		await image.CopyToAsync(stream);
-		//	}
+			return Ok("Attendance marked successfully.");
+		}
 
-		//	// Compare the uploaded image with the reference image
-		//	//var isFaceMatch = await _faceRecognitionService.CompareFacesAsync(tempFilePath, userImageFile);
+		// Update TimeOut for a specific student's attendance in a session
+		[HttpPut("UpdateTimeOutForAUser")]
+		public async Task<ActionResult> UpdateTimeOutForAUser(int sessionId, string userId)
+		{
+			// Find the attendance record for the specific session and student
+			var attendanceRecord = await _context.AttendanceRecords
+				.FirstOrDefaultAsync(ar => ar.SessionId == sessionId && ar.UserId == userId);
 
-		//	if (isFaceMatch)
-		//	{
-		//		// Save attendance
-		//		var attendance = new AttendanceRecord
-		//		{
-		//			UserId = user.Id,
-		//			TimeIn = DateTime.UtcNow,
-		//			Status = AttendanceStatus.Present,
-		//		};
-		//		_context.AttendanceRecords.Add(attendance);
-		//		await _context.SaveChangesAsync();
+			if (attendanceRecord == null)
+			{
+				return NotFound("Attendance record not found.");
+			}
 
-		//		return Ok("Attendance marked successfully.");
-		//	}
+			if (attendanceRecord.Status != AttendanceStatus.Present)
+			{
+				return BadRequest("Cannot update TimeOut for a User marked as absent.");
+			}
 
-		//	return BadRequest("Face not recognized.");
-		//}
+			// Check if TimeOut is already set
+			if (attendanceRecord.TimeOut != null)
+			{
+				return BadRequest("TimeOut is already set for this User.");
+			}
+
+			// Update the TimeOut to the current time
+			attendanceRecord.TimeOut = DateTime.Now;
+
+			// Save changes to the database
+			_context.AttendanceRecords.Update(attendanceRecord);
+			await _context.SaveChangesAsync();
+
+			return Ok("TimeOut updated successfully.");
+		}
+
+		// Search for students based on a keyword
+		[HttpGet("SearchForUser")]
+		public async Task<ActionResult<IEnumerable<User>>> SearchForUser([FromQuery] string keyword)
+		{
+			if (string.IsNullOrWhiteSpace(keyword))
+			{
+				return BadRequest("Keyword is required.");
+			}
+
+			var users = await _context.Users
+				.Where(u => u.UserName.Contains(keyword) || u.Id.Contains(keyword))
+				.ToListAsync();
+
+			if (!users.Any())
+			{
+				return NotFound("No students found.");
+			}
+
+			return Ok(users);
+		}
 	}
 }
